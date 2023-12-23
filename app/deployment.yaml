@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-client
+  labels:
+    app: mysql-client
+spec:
+  selector:
+    matchLabels:
+      app: mysql-client
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/tls-skip-verify: "true"
+        vault.hashicorp.com/agent-inject-secret-mysql-role: "database/creds/mysql-role"
+        vault.hashicorp.com/agent-inject-template-mysql-role: |
+          {
+          {{- with secret "database/creds/mysql-role" -}}
+            "MYSQL_USER": {{ .Data.username }}
+            "MYSQL_PASSWORD": {{ .Data.password }}
+            "MYSQL_HOST": mysql.mysql.svc.cluster.local
+            "MYSQL_PASSWORD": 3306
+          {{- end }}
+          }
+        vault.hashicorp.com/role: "mysql-role"
+      labels:
+        app: mysql-client
+    spec:
+      serviceAccountName: app
+      containers:
+        - name: app
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: "true"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app
+  labels:
+    app: app
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-client
+  labels:
+    app: mysql-client
+spec:
+  selector:
+    app: mysql-client
+  ports:
+    - protocol: TCP
+      name: mysql
+      port: 3306
+      targetPort: 3306
