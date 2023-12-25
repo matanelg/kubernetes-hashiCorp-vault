@@ -342,7 +342,7 @@ kubectl exec -n $VAULT_K8S_NAMESPACE vault-0 -- vault status
 
 Summary
 
-- as we can see vault-0 is in active mode & the leader on the raft cluster, where both the other servers vault-1 & vault-2 are the follower and in standby mode.
+- as we can see vault-0 is in active mode & the leader on the raft cluster, were both the other servers vault-1 & vault-2 are the follower and in standby mode.
 
 ## Setup kubernetes engine & authentication
 
